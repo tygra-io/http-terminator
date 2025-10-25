@@ -34,6 +34,11 @@ export const createInternalHttpTerminator = (
       socket.once("close", () => {
         sockets.delete(socket);
       });
+
+      // Also handle 'end' event for immediate cleanup
+      socket.once("end", () => {
+        sockets.delete(socket);
+      });
     }
   });
 

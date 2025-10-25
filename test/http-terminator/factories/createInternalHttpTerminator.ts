@@ -1,17 +1,11 @@
-import KeepAliveHttpAgent from 'agentkeepalive';
-import test from 'ava';
-import delay from 'delay';
-import safeGot from 'got';
-import sinon from 'sinon';
-import {
-  createInternalHttpTerminator,
-} from '../../../src/factories/createInternalHttpTerminator';
-import {
-  createHttpServer,
-} from '../../helpers/createHttpServer';
-import {
-  createHttpsServer,
-} from '../../helpers/createHttpsServer';
+import KeepAliveHttpAgent from "agentkeepalive";
+import test from "ava";
+import delay from "delay";
+import safeGot from "got";
+import sinon from "sinon";
+import { createInternalHttpTerminator } from "../../../src/factories/createInternalHttpTerminator";
+import { createHttpServer } from "../../helpers/createHttpServer";
+import { createHttpsServer } from "../../helpers/createHttpsServer";
 
 const got = safeGot.extend({
   https: {
@@ -19,7 +13,7 @@ const got = safeGot.extend({
   },
 });
 
-test('terminates HTTP server with no connections', async (t) => {
+test("terminates HTTP server with no connections", async (t) => {
   t.timeout(100);
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -36,7 +30,7 @@ test('terminates HTTP server with no connections', async (t) => {
   t.false(httpServer.server.listening);
 });
 
-test('terminates hanging sockets after httpResponseTimeout', async (t) => {
+test("terminates hanging sockets after httpResponseTimeout", async (t) => {
   t.timeout(500);
 
   const spy = sinon.spy();
@@ -68,12 +62,12 @@ test('terminates hanging sockets after httpResponseTimeout', async (t) => {
   t.is(await httpServer.getConnections(), 0);
 });
 
-test('server stops accepting new connections after terminator.terminate() is called', async (t) => {
+test("server stops accepting new connections after terminator.terminate() is called", async (t) => {
   t.timeout(500);
 
   const httpServer = await createHttpServer((serverResponse) => {
     setTimeout(() => {
-      serverResponse.end('foo');
+      serverResponse.end("foo");
     }, 100);
   });
 
@@ -101,16 +95,16 @@ test('server stops accepting new connections after terminator.terminate() is cal
 
   const response0 = await request0;
 
-  t.is(response0.headers.connection, 'close');
-  t.is(response0.body, 'foo');
+  t.is(response0.headers.connection, "close");
+  t.is(response0.body, "foo");
 });
 
-test('ongoing requests receive {connection: close} header', async (t) => {
+test("ongoing requests receive {connection: close} header", async (t) => {
   t.timeout(500);
 
   const httpServer = await createHttpServer((serverResponse) => {
     setTimeout(() => {
-      serverResponse.end('foo');
+      serverResponse.end("foo");
     }, 100);
   });
 
@@ -131,36 +125,32 @@ test('ongoing requests receive {connection: close} header', async (t) => {
 
   const response = await request;
 
-  t.is(response.headers.connection, 'close');
-  t.is(response.body, 'foo');
+  t.is(response.headers.connection, "close");
+  t.is(response.body, "foo");
 });
 
-test('ongoing requests receive {connection: close} header (new request reusing an existing socket)', async (t) => {
+test("ongoing requests receive {connection: close} header (new request reusing an existing socket)", async (t) => {
   t.timeout(1_000);
 
   const stub = sinon.stub();
 
-  stub
-    .onCall(0)
-    .callsFake((serverResponse) => {
-      serverResponse.write('foo');
+  stub.onCall(0).callsFake((serverResponse) => {
+    serverResponse.write("foo");
 
-      setTimeout(() => {
-        serverResponse.end('bar');
-      }, 50);
-    });
+    setTimeout(() => {
+      serverResponse.end("bar");
+    }, 50);
+  });
 
-  stub
-    .onCall(1)
-    .callsFake((serverResponse) => {
-      // @todo Unable to intercept the response without the delay.
-      // When `end()` is called immediately, the `request` event
-      // already has `headersSent=true`. It is unclear how to intercept
-      // the response beforehand.
-      setTimeout(() => {
-        serverResponse.end('baz');
-      }, 50);
-    });
+  stub.onCall(1).callsFake((serverResponse) => {
+    // @todo Unable to intercept the response without the delay.
+    // When `end()` is called immediately, the `request` event
+    // already has `headersSent=true`. It is unclear how to intercept
+    // the response beforehand.
+    setTimeout(() => {
+      serverResponse.end("baz");
+    }, 50);
+  });
 
   const httpServer = await createHttpServer(stub);
 
@@ -196,20 +186,20 @@ test('ongoing requests receive {connection: close} header (new request reusing a
 
   const response0 = await request0;
 
-  t.is(response0.headers.connection, 'keep-alive');
-  t.is(response0.body, 'foobar');
+  t.is(response0.headers.connection, "keep-alive");
+  t.is(response0.body, "foobar");
 
   const response1 = await request1;
 
-  t.is(response1.headers.connection, 'close');
-  t.is(response1.body, 'baz');
+  t.is(response1.headers.connection, "close");
+  t.is(response1.body, "baz");
 });
 
-test('empties internal socket collection', async (t) => {
+test("empties internal socket collection", async (t) => {
   t.timeout(500);
 
   const httpServer = await createHttpServer((serverResponse) => {
-    serverResponse.end('foo');
+    serverResponse.end("foo");
   });
 
   const terminator = createInternalHttpTerminator({
@@ -217,7 +207,9 @@ test('empties internal socket collection', async (t) => {
     server: httpServer.server,
   });
 
-  await got(httpServer.url);
+  await got(httpServer.url, {
+    agent: false,
+  });
 
   await delay(50);
 
@@ -227,11 +219,11 @@ test('empties internal socket collection', async (t) => {
   await terminator.terminate();
 });
 
-test('empties internal socket collection for https server', async (t) => {
+test("empties internal socket collection for https server", async (t) => {
   t.timeout(500);
 
   const httpsServer = await createHttpsServer((serverResponse) => {
-    serverResponse.end('foo');
+    serverResponse.end("foo");
   });
 
   const terminator = createInternalHttpTerminator({
@@ -239,7 +231,9 @@ test('empties internal socket collection for https server', async (t) => {
     server: httpsServer.server,
   });
 
-  await got(httpsServer.url);
+  await got(httpsServer.url, {
+    agent: false,
+  });
 
   await delay(50);
 
@@ -248,12 +242,12 @@ test('empties internal socket collection for https server', async (t) => {
   await terminator.terminate();
 });
 
-test('closes immediately after in-flight connections are closed (#16)', async (t) => {
+test("closes immediately after in-flight connections are closed (#16)", async (t) => {
   t.timeout(1_000);
 
   const spy = sinon.spy((serverResponse) => {
     setTimeout(() => {
-      serverResponse.end('foo');
+      serverResponse.end("foo");
     }, 100);
   });
 
