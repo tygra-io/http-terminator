@@ -23,10 +23,7 @@
     ]
   },
   "dependencies": {
-    "delay": "^5.0.0",
-    "p-wait-for": "^3.2.0",
-    "roarr": "^7.0.4",
-    "type-fest": "^2.3.3"
+    "p-wait-for": "^6.0.0"
   },
   "description": "Gracefully terminates HTTP(S) server.",
   "devDependencies": {
@@ -37,6 +34,7 @@
     "babel-plugin-istanbul": "^6.0.0",
     "babel-plugin-transform-export-default-name": "^2.1.0",
     "coveralls": "^3.1.1",
+    "delay": "^6.0.0",
     "eslint": "^8.10.0",
     "eslint-config-canonical": "^33.0.1",
     "express": "^4.17.3",
