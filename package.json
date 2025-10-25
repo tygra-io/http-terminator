@@ -1,9 +1,16 @@
 {
   "author": {
-    "email": "gajus@gajus.com",
-    "name": "Gajus Kuizinas",
-    "url": "http://gajus.com"
+    "email": "hi@tygra.io",
+    "name": "Tygra",
+    "url": "https://tygra.io"
   },
+  "contributors": [
+    {
+      "email": "hienngm99@gmail.com",
+      "name": "hienngm",
+      "url": "https://github.com/hienngm"
+    }
+  ],
   "ava": {
     "extensions": [
       "ts"
@@ -58,10 +65,10 @@
   ],
   "license": "BSD-3-Clause",
   "main": "./dist/src/index.js",
-  "name": "http-terminator",
+  "name": "@tygra/http-terminator",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gajus/http-terminator"
+    "url": "https://github.com/tygra-io/http-terminator"
   },
   "scripts": {
     "build": "rm -fr ./dist && tsc",
