@@ -11,4 +11,3 @@ node_modules
 !.npmignore
 !.README
 !.travis.yml
-/package-lock.json

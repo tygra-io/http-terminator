@@ -2,14 +2,14 @@ language: node_js
 node_js:
   - 14
 script:
-  - npm run lint
-  - npm run test
-  - npm run build
-  - nyc --silent npm run test
+  - pnpm run lint
+  - pnpm run test
+  - pnpm run build
+  - nyc --silent pnpm run test
   # - nyc report --reporter=text-lcov | coveralls
   # - nyc check-coverage --lines 30
 after_success:
-  - NODE_ENV=production npm run build
+  - NODE_ENV=production pnpm run build
   - semantic-release
 notifications:
   email: false
