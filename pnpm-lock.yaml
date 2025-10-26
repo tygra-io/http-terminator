@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      client-s3@latest:
-        specifier: link:@@aws-sdk/client-s3@latest
-        version: link:@@aws-sdk/client-s3@latest
       p-wait-for:
         specifier: ^6.0.0
         version: 6.0.0

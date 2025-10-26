@@ -53,6 +53,11 @@
   "engines": {
     "node": ">=14"
   },
+  "files": [
+    "dist/src",
+    "LICENSE",
+    "README.md"
+  ],
   "husky": {
     "hooks": {
       "pre-commit": "pnpm run lint && pnpm run test && pnpm run build"

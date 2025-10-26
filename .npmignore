@@ -1,4 +1,27 @@
-test
-coverage
+# Source files (keep compiled .d.ts files in dist/)
+src/
+test/
+
+# Test files in dist
+dist/test/
+
+# Build configuration
+tsconfig.json
+tsconfig.*.json
+
+# Development files
+coverage/
 .*
 *.log
+node_modules/
+
+# Lock files
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# CI/CD
+.github/
+
+# Documentation generation
+.README/
