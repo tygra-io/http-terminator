@@ -1,17 +1,17 @@
-import http from "http";
-import waitFor from "p-wait-for";
-import type { Duplex } from "stream";
+import http from 'http';
+import type { Duplex } from 'stream';
+import waitFor from 'p-wait-for';
 import type {
   HttpTerminatorConfigurationInput,
   InternalHttpTerminator,
-} from "../types";
+} from '../types';
 
 const configurationDefaults = {
   gracefulTerminationTimeout: 1_000,
 };
 
 export const createInternalHttpTerminator = (
-  configurationInput: HttpTerminatorConfigurationInput
+  configurationInput: HttpTerminatorConfigurationInput,
 ): InternalHttpTerminator => {
   const configuration = {
     ...configurationDefaults,
@@ -25,35 +25,35 @@ export const createInternalHttpTerminator = (
 
   let terminating;
 
-  server.on("connection", (socket) => {
+  server.on('connection', (socket) => {
     if (terminating) {
       socket.destroy();
     } else {
       sockets.add(socket);
 
-      socket.once("close", () => {
+      socket.once('close', () => {
         sockets.delete(socket);
       });
 
       // Also handle 'end' event for immediate cleanup
-      socket.once("end", () => {
+      socket.once('end', () => {
         sockets.delete(socket);
       });
     }
   });
 
-  server.on("secureConnection", (socket) => {
+  server.on('secureConnection', (socket) => {
     if (terminating) {
       socket.destroy();
     } else {
       secureSockets.add(socket);
 
-      socket.once("close", () => {
+      socket.once('close', () => {
         secureSockets.delete(socket);
       });
 
       // Also handle 'end' event for immediate cleanup
-      socket.once("end", () => {
+      socket.once('end', () => {
         secureSockets.delete(socket);
       });
     }
@@ -76,8 +76,6 @@ export const createInternalHttpTerminator = (
 
   const terminate = async () => {
     if (terminating) {
-      console.warn("already terminating HTTP server");
-
       return terminating;
     }
 
@@ -89,9 +87,9 @@ export const createInternalHttpTerminator = (
       rejectTerminating = reject;
     });
 
-    server.on("request", (incomingMessage, outgoingMessage) => {
+    server.on('request', (incomingMessage, outgoingMessage) => {
       if (!outgoingMessage.headersSent) {
-        outgoingMessage.setHeader("connection", "close");
+        outgoingMessage.setHeader('connection', 'close');
       }
     });
 
@@ -107,7 +105,7 @@ export const createInternalHttpTerminator = (
 
       if (serverResponse) {
         if (!serverResponse.headersSent) {
-          serverResponse.setHeader("connection", "close");
+          serverResponse.setHeader('connection', 'close');
         }
 
         continue;
@@ -122,7 +120,7 @@ export const createInternalHttpTerminator = (
 
       if (serverResponse) {
         if (!serverResponse.headersSent) {
-          serverResponse.setHeader("connection", "close");
+          serverResponse.setHeader('connection', 'close');
         }
 
         continue;
@@ -141,7 +139,7 @@ export const createInternalHttpTerminator = (
         {
           interval: 10,
           timeout: configuration.gracefulTerminationTimeout,
-        }
+        },
       );
     } catch {
       // Ignore timeout errors

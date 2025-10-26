@@ -1,20 +1,12 @@
-import {
-  createServer,
-} from 'https';
-import {
-  promisify,
-} from 'util';
+import { createServer } from 'https';
+import { promisify } from 'util';
 import pem from 'pem';
-import type {
-  TestServerFactory,
-} from './types';
+import type { TestServerFactory } from './types';
 
 export const createHttpsServer: TestServerFactory = async (requestHandler) => {
-  const {
-    serviceKey,
-    certificate,
-    csr,
-  } = await promisify(pem.createCertificate)({
+  const { serviceKey, certificate, csr } = await promisify(
+    pem.createCertificate,
+  )({
     days: 365,
     selfSigned: true,
   });

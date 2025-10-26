@@ -5,12 +5,8 @@ import test from 'ava';
 import delay from 'delay';
 import safeGot from 'got';
 import sinon from 'sinon';
-import {
-  createHttpTerminator,
-} from '../../src/factories/createHttpTerminator';
-import type {
-  TestServerFactory,
-} from './types';
+import { createHttpTerminator } from '../../src/factories/createHttpTerminator';
+import type { TestServerFactory } from './types';
 
 const got = safeGot.extend({
   https: {
@@ -20,9 +16,7 @@ const got = safeGot.extend({
 
 const KeepAliveHttpsAgent = KeepAliveHttpAgent.HttpsAgent;
 
-export const createTests = (
-  createTestServer: TestServerFactory,
-): void => {
+export const createTests = (createTestServer: TestServerFactory): void => {
   test('terminates HTTP server with no connections', async (t) => {
     const testServer = await createTestServer(() => {});
 
@@ -74,19 +68,15 @@ export const createTests = (
   test('server stops accepting new connections after terminator.terminate() is called', async (t) => {
     const stub = sinon.stub();
 
-    stub
-      .onCall(0)
-      .callsFake((serverResponse) => {
-        setTimeout(() => {
-          serverResponse.end('foo');
-        }, 100);
-      });
+    stub.onCall(0).callsFake((serverResponse) => {
+      setTimeout(() => {
+        serverResponse.end('foo');
+      }, 100);
+    });
 
-    stub
-      .onCall(1)
-      .callsFake((serverResponse) => {
-        serverResponse.end('bar');
-      });
+    stub.onCall(1).callsFake((serverResponse) => {
+      serverResponse.end('bar');
+    });
 
     const testServer = await createTestServer(stub);
 
@@ -163,27 +153,23 @@ export const createTests = (
   test('ongoing requests receive {connection: close} header (new request reusing an existing socket)', async (t) => {
     const stub = sinon.stub();
 
-    stub
-      .onCall(0)
-      .callsFake((serverResponse) => {
-        serverResponse.write('foo');
+    stub.onCall(0).callsFake((serverResponse) => {
+      serverResponse.write('foo');
 
-        setTimeout(() => {
-          serverResponse.end('bar');
-        }, 50);
-      });
+      setTimeout(() => {
+        serverResponse.end('bar');
+      }, 50);
+    });
 
-    stub
-      .onCall(1)
-      .callsFake((serverResponse) => {
-        // @todo Unable to intercept the response without the delay.
-        // When `end()` is called immediately, the `request` event
-        // already has `headersSent=true`. It is unclear how to intercept
-        // the response beforehand.
-        setTimeout(() => {
-          serverResponse.end('baz');
-        }, 50);
-      });
+    stub.onCall(1).callsFake((serverResponse) => {
+      // @todo Unable to intercept the response without the delay.
+      // When `end()` is called immediately, the `request` event
+      // already has `headersSent=true`. It is unclear how to intercept
+      // the response beforehand.
+      setTimeout(() => {
+        serverResponse.end('baz');
+      }, 50);
+    });
 
     const testServer = await createTestServer(stub);
 

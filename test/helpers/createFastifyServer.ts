@@ -1,15 +1,15 @@
-import { promisify } from "util";
-import fastify from "fastify";
-import type { TestServerFactory } from "./types";
+import { promisify } from 'util';
+import fastify from 'fastify';
+import type { TestServerFactory } from './types';
 
 export const createFastifyServer: TestServerFactory = async (
-  requestHandler
+  requestHandler,
 ) => {
   const app = fastify();
 
   const server = app.server;
 
-  app.get("/", (request, reply) => {
+  app.get('/', (request, reply) => {
     requestHandler(reply.raw);
   });
 
@@ -30,10 +30,10 @@ export const createFastifyServer: TestServerFactory = async (
   };
 
   const address = await app.listen(0);
-  const splitAddress = address.split(":");
+  const splitAddress = address.split(':');
 
   const port = Number(splitAddress[splitAddress.length - 1]);
-  const url = "http://localhost:" + port;
+  const url = 'http://localhost:' + port;
 
   return {
     getConnections,

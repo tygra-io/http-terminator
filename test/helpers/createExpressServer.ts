@@ -1,10 +1,6 @@
-import {
-  promisify,
-} from 'util';
+import { promisify } from 'util';
 import express from 'express';
-import type {
-  TestServerFactory,
-} from './types';
+import type { TestServerFactory } from './types';
 
 export const createExpressServer: TestServerFactory = (requestHandler) => {
   let server;

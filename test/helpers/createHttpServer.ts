@@ -1,12 +1,6 @@
-import {
-  createServer,
-} from 'http';
-import {
-  promisify,
-} from 'util';
-import type {
-  TestServerFactory,
-} from './types';
+import { createServer } from 'http';
+import { promisify } from 'util';
+import type { TestServerFactory } from './types';
 
 export const createHttpServer: TestServerFactory = (requestHandler) => {
   const server = createServer((incomingMessage, serverResponse) => {

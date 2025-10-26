@@ -1,7 +1,7 @@
-import type { Server as HttpServer } from "http";
-import type { Http2SecureServer } from "http2";
-import type { Server as HttpsServer } from "https";
-import type { Duplex } from "stream";
+import type { Server as HttpServer } from 'http';
+import type { Http2SecureServer } from 'http2';
+import type { Server as HttpsServer } from 'https';
+import type { Duplex } from 'stream';
 
 /**
  * @property gracefulTerminationTimeout Number of milliseconds to allow for the active sockets to complete serving the response (default: 5000).
