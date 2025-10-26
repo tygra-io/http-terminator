@@ -1,14 +1,10 @@
 # http-terminator 🦾
 
-[![Travis build status](http://img.shields.io/travis/gajus/http-terminator/master.svg?style=flat-square)](https://travis-ci.com/gajus/http-terminator)
-[![Coveralls](https://img.shields.io/coveralls/gajus/http-terminator.svg?style=flat-square)](https://coveralls.io/github/gajus/http-terminator)
-[![NPM version](http://img.shields.io/npm/v/http-terminator.svg?style=flat-square)](https://www.npmjs.org/package/http-terminator)
-[![Canonical Code Style](https://img.shields.io/badge/code%20style-canonical-blue.svg?style=flat-square)](https://github.com/gajus/canonical)
-[![Twitter Follow](https://img.shields.io/twitter/follow/kuizinas.svg?style=social&label=Follow)](https://twitter.com/kuizinas)
+[![Coveralls](https://img.shields.io/coveralls/tygra-io/http-terminator.svg?style=flat-square)](https://coveralls.io/github/tygra-io/http-terminator)
+[![NPM version](https://img.shields.io/npm/v/@tygra/http-terminator.svg?style=flat-square)](https://www.npmjs.org/package/@tygra/http-terminator)
+[![Twitter Follow](https://img.shields.io/twitter/follow/kuizinas.svg?style=social&label=Follow)](https://x.com/hienngm)
 
 Gracefully terminates HTTP(S) server.
-
-{"gitdown": "contents"}
 
 ## Behaviour
 
@@ -27,17 +23,17 @@ import {
  * @property gracefulTerminationTimeout Number of milliseconds to allow for the active sockets to complete serving the response (default: 5000).
  * @property server Instance of http.Server.
  */
-type HttpTerminatorConfigurationInputType = {|
-  +gracefulTerminationTimeout?: number,
-  +server: Server,
-|};
+type HttpTerminatorConfigurationInputType = {
+  gracefulTerminationTimeout?: number,
+  server: Server,
+};
 
 /**
  * @property terminate Terminates HTTP server.
  */
 type HttpTerminatorType = {|
-  +terminate: () => Promise<void>,
-|};
+  terminate: () => Promise<void>,
+};
 
 
 const httpTerminator: HttpTerminatorType = createHttpTerminator(
@@ -52,9 +48,7 @@ Use `createHttpTerminator` to create an instance of http-terminator and instead 
 
 ```js
 import http from 'http';
-import {
-  createHttpTerminator,
-} from 'http-terminator';
+import { createHttpTerminator } from 'http-terminator';
 
 const server = http.createServer();
 
@@ -63,7 +57,6 @@ const httpTerminator = createHttpTerminator({
 });
 
 await httpTerminator.terminate();
-
 ```
 
 ### Usage with Express
@@ -72,9 +65,7 @@ Usage with [Express](https://www.npmjs.com/package/express) example:
 
 ```js
 import express from 'express';
-import {
-  createHttpTerminator,
-} from 'http-terminator';
+import { createHttpTerminator } from 'http-terminator';
 
 const app = express();
 
@@ -85,7 +76,6 @@ const httpTerminator = createHttpTerminator({
 });
 
 await httpTerminator.terminate();
-
 ```
 
 ### Usage with Fastify
@@ -94,9 +84,7 @@ Usage with [Fastify](https://www.npmjs.com/package/fastify) example:
 
 ```js
 import fastify from 'fastify';
-import {
-  createHttpTerminator,
-} from 'http-terminator';
+import { createHttpTerminator } from 'http-terminator';
 
 const app = fastify();
 
@@ -107,7 +95,6 @@ const httpTerminator = createHttpTerminator({
 });
 
 await httpTerminator.terminate();
-
 ```
 
 ### Usage with Koa
@@ -116,9 +103,7 @@ Usage with [Koa](https://www.npmjs.com/package/koa) example:
 
 ```js
 import Koa from 'koa';
-import {
-  createHttpTerminator,
-} from 'http-terminator';
+import { createHttpTerminator } from 'http-terminator';
 
 const app = new Koa();
 
@@ -129,7 +114,6 @@ const httpTerminator = createHttpTerminator({
 });
 
 await httpTerminator.terminate();
-
 ```
 
 ### Usage with other HTTP frameworks
@@ -140,19 +124,19 @@ As it should be clear from the usage examples for Node.js HTTP server, Express a
 
 There are several alternative libraries that implement comparable functionality, e.g.
 
-* https://github.com/hunterloftis/stoppable
-* https://github.com/thedillonb/http-shutdown
-* https://github.com/tellnes/http-close
-* https://github.com/sebhildebrandt/http-graceful-shutdown
+- https://github.com/hunterloftis/stoppable
+- https://github.com/thedillonb/http-shutdown
+- https://github.com/tellnes/http-close
+- https://github.com/sebhildebrandt/http-graceful-shutdown
 
 The main benefit of http-terminator is that:
 
-* it does not monkey-patch Node.js API
-* it immediately destroys all sockets without an attached HTTP request
-* it allows graceful timeout to sockets with ongoing HTTP requests
-* it properly handles HTTPS connections
-* it informs connections using keep-alive that server is shutting down by setting a `connection: close` header
-* it does not terminate the Node.js process
+- it does not monkey-patch Node.js API
+- it immediately destroys all sockets without an attached HTTP request
+- it allows graceful timeout to sockets with ongoing HTTP requests
+- it properly handles HTTPS connections
+- it informs connections using keep-alive that server is shutting down by setting a `connection: close` header
+- it does not terminate the Node.js process
 
 ## FAQ
 
@@ -164,6 +148,6 @@ We say that a service is gracefully terminated when service stops accepting new 
 
 There are several reasons to terminate services gracefully:
 
-* Terminating a service gracefully ensures that the client experience is not affected (assuming the service is load-balanced).
-* If your application is stateful, then when services are not terminated gracefully, you are risking data corruption.
-* Forcing termination of the service with a timeout ensures timely termination of the service (otherwise the service can remain hanging indefinitely).
+- Terminating a service gracefully ensures that the client experience is not affected (assuming the service is load-balanced).
+- If your application is stateful, then when services are not terminated gracefully, you are risking data corruption.
+- Forcing termination of the service with a timeout ensures timely termination of the service (otherwise the service can remain hanging indefinitely).

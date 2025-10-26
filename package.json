@@ -27,6 +27,7 @@
   },
   "description": "Gracefully terminates HTTP(S) server.",
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/express": "^4.17.13",
     "@types/node": "^10.0.0",
     "agentkeepalive": "^4.1.4",
@@ -43,6 +44,7 @@
     "gitdown": "^3.1.4",
     "got": "^11.8.2",
     "husky": "^7.0.2",
+    "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
     "pem": "^1.14.4",
     "semantic-release": "^17.4.7",
@@ -76,10 +78,21 @@
   },
   "scripts": {
     "build": "rm -fr ./dist && tsc",
+    "cov": "run-s build test:unit cov:html cov:lcov",
+    "cov:html": "nyc report --reporter=html",
+    "cov:lcov": "nyc report --reporter=lcov",
     "generate-readme": "gitdown ./.README/README.md --output-file ./README.md",
     "lint": "eslint ./src ./test && tsc --noEmit",
-    "test": "NODE_ENV=test ava --serial --verbose"
+    "test": "NODE_ENV=test ava --serial --verbose",
+    "test:unit": "NODE_ENV=test nyc --silent ava --serial --verbose"
   },
   "typings": "./dist/src/index.d.ts",
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "exclude": [
+      "**/*.spec.js",
+      "test/**/*"
+    ]
+  }
 }
