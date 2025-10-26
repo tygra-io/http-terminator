@@ -7,7 +7,7 @@ import type {
 } from '../types';
 
 const configurationDefaults = {
-  gracefulTerminationTimeout: 1_000,
+  gracefulTerminationTimeout: 5_000,
 };
 
 export const createInternalHttpTerminator = (
