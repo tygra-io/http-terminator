@@ -1,5 +1,5 @@
 import type { Server as HttpServer } from 'http';
-import type { Http2SecureServer } from 'http2';
+import type { Http2SecureServer, Http2Server } from 'http2';
 import type { Server as HttpsServer } from 'https';
 import type { Duplex } from 'stream';
 
@@ -9,7 +9,7 @@ import type { Duplex } from 'stream';
  */
 export type HttpTerminatorConfigurationInput = {
   readonly gracefulTerminationTimeout?: number;
-  readonly server: Http2SecureServer | HttpServer | HttpsServer;
+  readonly server: Http2SecureServer | Http2Server | HttpServer | HttpsServer;
 };
 
 /**

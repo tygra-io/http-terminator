@@ -11,6 +11,7 @@
   "rules": {
     "import/no-named-as-default-member": 0,
     "unicorn/expiring-todo-comments": 0,
-    "canonical/destructuring-property-newline": 0
+    "canonical/destructuring-property-newline": 0,
+    "canonical/import-specifier-newline": 0
   }
 }
