@@ -87,7 +87,7 @@
     "test:unit": "NODE_ENV=test nyc --silent ava --serial --verbose"
   },
   "typings": "./dist/src/index.d.ts",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "nyc": {
     "extends": "@istanbuljs/nyc-config-typescript",
     "exclude": [
