@@ -9,6 +9,8 @@
 
 Gracefully terminates HTTP(S) server.
 
+**Requirements:** Node.js version >= 14
+
 <a name="user-content-http-terminator-about-this-fork"></a>
 <a name="http-terminator-about-this-fork"></a>
 
@@ -16,8 +18,8 @@ Gracefully terminates HTTP(S) server.
 
 This is an actively maintained fork of the [http-terminator](https://www.npmjs.com/package/http-terminator) npm package. While the original package has seen minimal maintenance, this fork provides:
 
+- **Zero dependencies** - Pure implementation with zero runtime dependencies for maximum security and reliability
 - **TypeScript Support** - Fully written in TypeScript with complete type safety (unlike alternatives like lil-http-terminator that rewrote the code in JavaScript)
-- **Reduced dependencies** - Optimized dependencies
 - **Smaller build size** - ~30% smaller bundle
 - **Bug fixes** - Active maintenance and bug fixes for issues in the original
 - **Continued support** - Regular updates and maintained codebase

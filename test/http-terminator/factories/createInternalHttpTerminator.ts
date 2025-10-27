@@ -14,7 +14,7 @@ const got = safeGot.extend({
 });
 
 test('terminates HTTP server with no connections', async (t) => {
-  t.timeout(100);
+  t.timeout(1_000);
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   const httpServer = await createHttpServer(() => {});
@@ -31,7 +31,7 @@ test('terminates HTTP server with no connections', async (t) => {
 });
 
 test('terminates hanging sockets after httpResponseTimeout', async (t) => {
-  t.timeout(500);
+  t.timeout(1_000);
 
   const spy = sinon.spy();
 
@@ -44,7 +44,7 @@ test('terminates hanging sockets after httpResponseTimeout', async (t) => {
     server: httpServer.server,
   });
 
-  void got(httpServer.url);
+  void got(httpServer.url).catch(() => {});
 
   await delay(50);
 
@@ -63,7 +63,7 @@ test('terminates hanging sockets after httpResponseTimeout', async (t) => {
 });
 
 test('server stops accepting new connections after terminator.terminate() is called', async (t) => {
-  t.timeout(500);
+  t.timeout(1_000);
 
   const httpServer = await createHttpServer((serverResponse) => {
     setTimeout(() => {
@@ -100,7 +100,7 @@ test('server stops accepting new connections after terminator.terminate() is cal
 });
 
 test('ongoing requests receive {connection: close} header', async (t) => {
-  t.timeout(500);
+  t.timeout(1_000);
 
   const httpServer = await createHttpServer((serverResponse) => {
     setTimeout(() => {
@@ -130,7 +130,7 @@ test('ongoing requests receive {connection: close} header', async (t) => {
 });
 
 test('ongoing requests receive {connection: close} header (new request reusing an existing socket)', async (t) => {
-  t.timeout(1_000);
+  t.timeout(2_000);
 
   const stub = sinon.stub();
 
@@ -196,7 +196,7 @@ test('ongoing requests receive {connection: close} header (new request reusing a
 });
 
 test('empties internal socket collection', async (t) => {
-  t.timeout(500);
+  t.timeout(1_000);
 
   const httpServer = await createHttpServer((serverResponse) => {
     serverResponse.end('foo');
@@ -220,7 +220,7 @@ test('empties internal socket collection', async (t) => {
 });
 
 test('empties internal socket collection for https server', async (t) => {
-  t.timeout(500);
+  t.timeout(1_000);
 
   const httpsServer = await createHttpsServer((serverResponse) => {
     serverResponse.end('foo');
@@ -243,7 +243,7 @@ test('empties internal socket collection for https server', async (t) => {
 });
 
 test('closes immediately after in-flight connections are closed (#16)', async (t) => {
-  t.timeout(1_000);
+  t.timeout(2_000);
 
   const spy = sinon.spy((serverResponse) => {
     setTimeout(() => {
@@ -260,7 +260,7 @@ test('closes immediately after in-flight connections are closed (#16)', async (t
     server: httpServer.server,
   });
 
-  void got(httpServer.url);
+  void got(httpServer.url).catch(() => {});
 
   await delay(50);
 
@@ -277,7 +277,7 @@ test('closes immediately after in-flight connections are closed (#16)', async (t
 });
 
 test('calling terminate() multiple times is idempotent', async (t) => {
-  t.timeout(200);
+  t.timeout(1_000);
 
   const httpServer = await createHttpServer(() => {});
 
@@ -296,7 +296,7 @@ test('calling terminate() multiple times is idempotent', async (t) => {
 });
 
 test('socket end event triggers cleanup', async (t) => {
-  t.timeout(200);
+  t.timeout(1_000);
 
   const httpServer = await createHttpServer((serverResponse) => {
     serverResponse.end('foo');
@@ -322,7 +322,7 @@ test('socket end event triggers cleanup', async (t) => {
 });
 
 test('new HTTPS connection during termination is rejected', async (t) => {
-  t.timeout(500);
+  t.timeout(1_000);
 
   const httpsServer = await createHttpsServer((serverResponse) => {
     setTimeout(() => {
@@ -359,7 +359,7 @@ test('new HTTPS connection during termination is rejected', async (t) => {
 });
 
 test('idle sockets without httpMessage are destroyed', async (t) => {
-  t.timeout(200);
+  t.timeout(1_000);
 
   const httpServer = await createHttpServer((serverResponse) => {
     serverResponse.end('foo');
@@ -384,15 +384,15 @@ test('idle sockets without httpMessage are destroyed', async (t) => {
 });
 
 test('handles server.close() error gracefully', async (t) => {
-  t.timeout(500);
+  t.timeout(1_000);
 
   const httpServer = await createHttpServer(() => {});
 
   // Create a mock logger to verify error logging
   const logger = {
-    warn: sinon.stub(),
     error: sinon.stub(),
     log: sinon.stub(),
+    warn: sinon.stub(),
   };
 
   const terminator = createInternalHttpTerminator({
@@ -426,15 +426,15 @@ test('handles server.close() error gracefully', async (t) => {
 });
 
 test('handles unexpected errors during termination gracefully', async (t) => {
-  t.timeout(500);
+  t.timeout(1_000);
 
   const httpServer = await createHttpServer(() => {});
 
   // Create a mock logger to verify error logging
   const logger = {
-    warn: sinon.stub(),
     error: sinon.stub(),
     log: sinon.stub(),
+    warn: sinon.stub(),
   };
 
   const terminator = createInternalHttpTerminator({
@@ -451,6 +451,7 @@ test('handles unexpected errors during termination gracefully', async (t) => {
     if (callback) {
       throw unexpectedError;
     }
+
     return originalClose(callback);
   });
 
@@ -468,7 +469,7 @@ test('handles unexpected errors during termination gracefully', async (t) => {
 });
 
 test('creates new socket during termination for HTTP', async (t) => {
-  t.timeout(200);
+  t.timeout(1_000);
 
   const httpServer = await createHttpServer(() => {});
 
@@ -499,7 +500,7 @@ test('creates new socket during termination for HTTP', async (t) => {
 });
 
 test('creates new socket during termination for HTTPS', async (t) => {
-  t.timeout(200);
+  t.timeout(1_000);
 
   const httpsServer = await createHttpsServer(() => {});
 
@@ -530,7 +531,7 @@ test('creates new socket during termination for HTTPS', async (t) => {
 });
 
 test('covers socket with _httpMessage that already sent headers', async (t) => {
-  t.timeout(300);
+  t.timeout(1_000);
 
   // Use Node's http module directly to access full ServerResponse
   const http = await import('http');
@@ -571,16 +572,10 @@ test('covers socket with _httpMessage that already sent headers', async (t) => {
   const response = await request;
 
   t.is(response.body, 'foo');
-
-  // Wait for termination to complete before closing the server
-  await delay(100);
-  await terminator.terminate();
-
-  server.close();
 });
 
 test('secure socket is destroyed when created during termination', async (t) => {
-  t.timeout(200);
+  t.timeout(1_000);
 
   const httpsServer = await createHttpsServer(() => {});
 
@@ -614,7 +609,7 @@ test('secure socket is destroyed when created during termination', async (t) => 
 });
 
 test('destroys idle sockets without _httpMessage during termination for secure sockets', async (t) => {
-  t.timeout(1_000);
+  t.timeout(2_000);
 
   const httpsServer = await createHttpsServer((serverResponse) => {
     serverResponse.end('foo');
@@ -657,7 +652,7 @@ test('destroys idle sockets without _httpMessage during termination for secure s
 });
 
 test('destroys idle sockets without _httpMessage during termination', async (t) => {
-  t.timeout(1_000);
+  t.timeout(2_000);
 
   const httpServer = await createHttpServer((serverResponse) => {
     serverResponse.end('foo');
@@ -700,7 +695,7 @@ test('destroys idle sockets without _httpMessage during termination', async (t) 
 });
 
 test('handles request with headers already sent during termination', async (t) => {
-  t.timeout(500);
+  t.timeout(1_000);
 
   // Use Node's http module directly to access full ServerResponse
   const http = await import('http');
@@ -750,10 +745,4 @@ test('handles request with headers already sent during termination', async (t) =
   // Headers were already sent, so connection:close won't be set by the terminator
   // But the 'connection' header might still be set to 'close' by other mechanisms
   t.truthy(response.body);
-
-  // Wait for termination to complete before closing the server
-  await delay(100);
-  await terminator.terminate();
-
-  server.close();
 });

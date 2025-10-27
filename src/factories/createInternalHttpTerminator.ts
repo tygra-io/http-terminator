@@ -1,10 +1,10 @@
 import http from 'http';
 import type { Duplex } from 'stream';
-import waitFor from 'p-wait-for';
 import type {
   HttpTerminatorConfigurationInput,
   InternalHttpTerminator,
 } from '../types';
+import { waitFor } from '../utils';
 
 const configurationDefaults = {
   gracefulTerminationTimeout: 5_000,
