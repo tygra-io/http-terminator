@@ -8,6 +8,7 @@ import type {
 
 const configurationDefaults = {
   gracefulTerminationTimeout: 5_000,
+  logger: console,
 };
 
 export const createInternalHttpTerminator = (
@@ -19,6 +20,7 @@ export const createInternalHttpTerminator = (
   };
 
   const server = configuration.server;
+  const logger = configuration.logger ?? configurationDefaults.logger;
 
   const sockets = new Set<Duplex>();
   const secureSockets = new Set<Duplex>();
@@ -67,6 +69,9 @@ export const createInternalHttpTerminator = (
 
   const terminate = async (): Promise<void> => {
     if (isTerminating) {
+      logger.warn(
+        '[http-terminator] terminate() called while termination is already in progress',
+      );
       await terminating;
       return;
     }
@@ -136,7 +141,9 @@ export const createInternalHttpTerminator = (
         },
       );
     } catch {
-      // Ignore timeout errors
+      logger.warn(
+        `[http-terminator] Graceful termination timeout expired (${configuration.gracefulTerminationTimeout}ms). Forcefully destroying remaining sockets.`,
+      );
     } finally {
       for (const socket of sockets) {
         destroySocket(socket);
@@ -149,8 +156,13 @@ export const createInternalHttpTerminator = (
 
     server.close((error) => {
       if (error) {
+        logger.error(
+          '[http-terminator] Error occurred during server close:',
+          error,
+        );
         rejectTerminating(error);
       } else {
+        logger.log('[http-terminator] Server closed successfully');
         resolveTerminating();
       }
     });

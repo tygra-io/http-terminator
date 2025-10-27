@@ -22,6 +22,7 @@ This is an actively maintained fork of the [http-terminator](https://www.npmjs.c
 - **Bug fixes** - Active maintenance and bug fixes for issues in the original
 - **Continued support** - Regular updates and maintained codebase
 - **Comprehensive test coverage** - 90%+ test coverage ensuring reliability across edge cases
+- **Built-in logging** - Configurable logger support with default console logger for visibility into edge cases during termination
 
 The API remains compatible with the original package, making it a drop-in replacement.
 
@@ -35,6 +36,7 @@ The API remains compatible with the original package, making it a drop-in replac
     - [Usage with Koa](#user-content-http-terminator-usage-usage-with-koa)
     - [Usage with other HTTP frameworks](#user-content-http-terminator-usage-usage-with-other-http-frameworks)
   - [Alternative libraries](#user-content-http-terminator-alternative-libraries)
+  - [Logger Configuration](#user-content-http-terminator-logger)
   - [FAQ](#user-content-http-terminator-faq)
     - [What is the use case for http-terminator?](#user-content-http-terminator-faq-what-is-the-use-case-for-http-terminator)
     - [What is the performance and memory impact of http-terminator?](#user-content-http-terminator-faq-what-is-the-performance-and-memory-impact-of-http-terminator)
@@ -60,11 +62,26 @@ import {
 
 /**
  * @property gracefulTerminationTimeout Number of milliseconds to allow for the active sockets to complete serving the response (default: 5000).
+ * @property logger Logger instance for logging edge cases during termination (default: console).
  * @property server Instance of http.Server.
  */
 type HttpTerminatorConfigurationInputType = {
   gracefulTerminationTimeout?: number,
+  logger?: Logger,
   server: Server,
+};
+
+/**
+ * Logger interface for logging messages during HTTP server termination.
+ *
+ * @property log Logs general informational messages.
+ * @property warn Logs warning messages.
+ * @property error Logs error messages.
+ */
+type Logger = {
+  error: (...args: unknown[]) => void,
+  log: (...args: unknown[]) => void,
+  warn: (...args: unknown[]) => void,
 };
 
 /**
@@ -194,6 +211,38 @@ The main benefit of http-terminator is that:
 - it properly handles HTTPS connections
 - it informs connections using keep-alive that server is shutting down by setting a `connection: close` header
 - it does not terminate the Node.js process
+- it provides built-in logging for edge cases during server termination
+
+<a name="user-content-http-terminator-logger"></a>
+<a name="http-terminator-logger"></a>
+
+## Logger Configuration
+
+http-terminator supports configurable logging to help you monitor and debug edge cases during server termination. By default, it uses `console` for logging.
+
+```js
+import { createHttpTerminator } from 'http-terminator';
+import http from 'http';
+
+const server = http.createServer();
+
+// Using console by default
+const httpTerminator = createHttpTerminator({ server });
+
+// Or use your own logger
+const httpTerminator = createHttpTerminator({
+  logger: yourLogger, // Any logger that implements log, warn, and error methods
+  server,
+});
+
+await httpTerminator.terminate();
+```
+
+The logger captures important events:
+
+- **Info**: Server successfully closed
+- **Warning**: Graceful termination timeout expired
+- **Error**: Errors during server shutdown
 
 <a name="user-content-http-terminator-faq"></a>
 <a name="http-terminator-faq"></a>
