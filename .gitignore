@@ -10,5 +10,5 @@ node_modules
 !.gitignore
 !.npmignore
 !.README
-!.travis.yml
 !.prettierrc
+!.github

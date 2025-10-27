@@ -18,9 +18,9 @@ const KeepAliveHttpsAgent = KeepAliveHttpAgent.HttpsAgent;
 
 export const createTests = (createTestServer: TestServerFactory): void => {
   test('terminates HTTP server with no connections', async (t) => {
-    const testServer = await createTestServer(() => {});
+    t.timeout(1_000);
 
-    t.timeout(100);
+    const testServer = await createTestServer(() => {});
 
     t.true(testServer.server.listening);
 
@@ -34,13 +34,13 @@ export const createTests = (createTestServer: TestServerFactory): void => {
   });
 
   test('terminates hanging sockets after gracefulTerminationTimeout', async (t) => {
+    t.timeout(1_000);
+
     const spy = sinon.spy();
 
     const testServer = await createTestServer(() => {
       spy();
     });
-
-    t.timeout(500);
 
     const terminator = createHttpTerminator({
       gracefulTerminationTimeout: 150,
@@ -66,6 +66,8 @@ export const createTests = (createTestServer: TestServerFactory): void => {
   });
 
   test('server stops accepting new connections after terminator.terminate() is called', async (t) => {
+    t.timeout(1_000);
+
     const stub = sinon.stub();
 
     stub.onCall(0).callsFake((serverResponse) => {
@@ -79,8 +81,6 @@ export const createTests = (createTestServer: TestServerFactory): void => {
     });
 
     const testServer = await createTestServer(stub);
-
-    t.timeout(500);
 
     const terminator = createHttpTerminator({
       gracefulTerminationTimeout: 150,
@@ -112,13 +112,13 @@ export const createTests = (createTestServer: TestServerFactory): void => {
   });
 
   test('ongoing requests receive {connection: close} header', async (t) => {
+    t.timeout(1_000);
+
     const testServer = await createTestServer((serverResponse) => {
       setTimeout(() => {
         serverResponse.end('foo');
       }, 100);
     });
-
-    t.timeout(600);
 
     const terminator = createHttpTerminator({
       gracefulTerminationTimeout: 150,
@@ -151,6 +151,8 @@ export const createTests = (createTestServer: TestServerFactory): void => {
   });
 
   test('ongoing requests receive {connection: close} header (new request reusing an existing socket)', async (t) => {
+    t.timeout(2_000);
+
     const stub = sinon.stub();
 
     stub.onCall(0).callsFake((serverResponse) => {
@@ -172,8 +174,6 @@ export const createTests = (createTestServer: TestServerFactory): void => {
     });
 
     const testServer = await createTestServer(stub);
-
-    t.timeout(1_000);
 
     const terminator = createHttpTerminator({
       gracefulTerminationTimeout: 150,
@@ -223,13 +223,13 @@ export const createTests = (createTestServer: TestServerFactory): void => {
   });
 
   test('does not send {connection: close} when server is not terminating', async (t) => {
+    t.timeout(1_000);
+
     const testServer = await createTestServer((serverResponse) => {
       setTimeout(() => {
         serverResponse.end('foo');
       }, 50);
     });
-
-    t.timeout(100);
 
     createHttpTerminator({
       server: testServer.server,
