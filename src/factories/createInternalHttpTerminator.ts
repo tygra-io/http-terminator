@@ -23,10 +23,11 @@ export const createInternalHttpTerminator = (
   const sockets = new Set<Duplex>();
   const secureSockets = new Set<Duplex>();
 
-  let terminating;
+  let isTerminating = false;
+  let terminating: Promise<void> | undefined;
 
-  server.on('connection', (socket) => {
-    if (terminating) {
+  server.on('connection', (socket: Duplex) => {
+    if (isTerminating) {
       socket.destroy();
     } else {
       sockets.add(socket);
@@ -34,26 +35,16 @@ export const createInternalHttpTerminator = (
       socket.once('close', () => {
         sockets.delete(socket);
       });
-
-      // Also handle 'end' event for immediate cleanup
-      socket.once('end', () => {
-        sockets.delete(socket);
-      });
     }
   });
 
-  server.on('secureConnection', (socket) => {
-    if (terminating) {
+  server.on('secureConnection', (socket: Duplex) => {
+    if (isTerminating) {
       socket.destroy();
     } else {
       secureSockets.add(socket);
 
       socket.once('close', () => {
-        secureSockets.delete(socket);
-      });
-
-      // Also handle 'end' event for immediate cleanup
-      socket.once('end', () => {
         secureSockets.delete(socket);
       });
     }
@@ -64,30 +55,33 @@ export const createInternalHttpTerminator = (
    *
    * @see https://github.com/nodejs/node/blob/57bd715d527aba8dae56b975056961b0e429e91e/lib/_http_client.js#L363-L413
    */
-  const destroySocket = (socket) => {
+  const destroySocket = (socket: Duplex) => {
     socket.destroy();
 
-    if (socket.server instanceof http.Server) {
+    if (sockets.has(socket)) {
       sockets.delete(socket);
     } else {
       secureSockets.delete(socket);
     }
   };
 
-  const terminate = async () => {
-    if (terminating) {
-      return terminating;
+  const terminate = async (): Promise<void> => {
+    if (isTerminating) {
+      await terminating;
+      return;
     }
 
-    let resolveTerminating;
-    let rejectTerminating;
+    isTerminating = true;
+
+    let resolveTerminating: () => void;
+    let rejectTerminating: (error: Error) => void;
 
     terminating = new Promise((resolve, reject) => {
       resolveTerminating = resolve;
       rejectTerminating = reject;
     });
 
-    server.on('request', (incomingMessage, outgoingMessage) => {
+    server.on('request', (_incomingMessage, outgoingMessage) => {
       if (!outgoingMessage.headersSent) {
         outgoingMessage.setHeader('connection', 'close');
       }
@@ -161,7 +155,7 @@ export const createInternalHttpTerminator = (
       }
     });
 
-    return terminating;
+    await terminating;
   };
 
   return {
