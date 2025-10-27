@@ -23,6 +23,7 @@ This is an actively maintained fork of the [http-terminator](https://www.npmjs.c
 - **Continued support** - Regular updates and maintained codebase
 - **Comprehensive test coverage** - 90%+ test coverage ensuring reliability across edge cases
 - **Built-in logging** - Configurable logger support with default console logger for visibility into edge cases during termination
+- **Error resilience** - Never throws errors during shutdown; all errors are caught and logged, ensuring production reliability
 
 The API remains compatible with the original package, making it a drop-in replacement.
 
@@ -39,6 +40,7 @@ The API remains compatible with the original package, making it a drop-in replac
   - [Logger Configuration](#user-content-http-terminator-logger)
   - [FAQ](#user-content-http-terminator-faq)
     - [What is the use case for http-terminator?](#user-content-http-terminator-faq-what-is-the-use-case-for-http-terminator)
+    - [What happens if there's an error during server shutdown?](#user-content-http-terminator-faq-what-happens-if-termination-fails)
     - [What is the performance and memory impact of http-terminator?](#user-content-http-terminator-faq-what-is-the-performance-and-memory-impact-of-http-terminator)
 
 <a name="user-content-http-terminator-behaviour"></a>
@@ -49,6 +51,8 @@ The API remains compatible with the original package, making it a drop-in replac
 When you call [`server.close()`](https://nodejs.org/api/http.html#http_server_close_callback), it stops the server from accepting new connections, but it keeps the existing connections open indefinitely. This can result in your server hanging indefinitely due to keep-alive connections or because of the ongoing requests that do not produce a response. Therefore, in order to close the server, you must track creation of all connections and terminate them yourself.
 
 http-terminator implements the logic for tracking all connections and their termination upon a timeout. http-terminator also ensures graceful communication of the server intention to shutdown to any clients that are currently receiving response from this server.
+
+**Robust Error Handling**: The shutdown process is designed to never throw errors. All errors during termination are caught and logged. This makes http-terminator production-ready for critical applications where reliability is paramount.
 
 <a name="user-content-http-terminator-api"></a>
 <a name="http-terminator-api"></a>
@@ -85,7 +89,8 @@ type Logger = {
 };
 
 /**
- * @property terminate Terminates HTTP server.
+ * @property terminate Terminates HTTP server. This method never throws errors.
+ *                     All errors during termination are caught and logged to the configured logger.
  */
 type HttpTerminatorType = {
   terminate: () => Promise<void>,
@@ -212,6 +217,7 @@ The main benefit of http-terminator is that:
 - it informs connections using keep-alive that server is shutting down by setting a `connection: close` header
 - it does not terminate the Node.js process
 - it provides built-in logging for edge cases during server termination
+- it never throws errors during shutdown (all errors are caught and logged)
 
 <a name="user-content-http-terminator-logger"></a>
 <a name="http-terminator-logger"></a>
@@ -240,9 +246,16 @@ await httpTerminator.terminate();
 
 The logger captures important events:
 
-- **Info**: Server successfully closed
-- **Warning**: Graceful termination timeout expired
-- **Error**: Errors during server shutdown
+- **Info (`log`)**: Server successfully closed
+- **Warning (`warn`)**:
+  - Graceful termination timeout expired
+  - Multiple termination calls detected (idempotent behavior)
+- **Error (`error`)**:
+  - Errors during server shutdown
+  - Errors during `server.close()` operation
+  - Unexpected errors during the termination process
+
+**Error Resilience**: All errors are caught and logged rather than thrown, ensuring your application continues to run smoothly even when edge cases occur during server termination.
 
 <a name="user-content-http-terminator-faq"></a>
 <a name="http-terminator-faq"></a>
@@ -263,6 +276,27 @@ There are several reasons to terminate services gracefully:
 - Terminating a service gracefully ensures that the client experience is not affected (assuming the service is load-balanced).
 - If your application is stateful, then when services are not terminated gracefully, you are risking data corruption.
 - Forcing termination of the service with a timeout ensures timely termination of the service (otherwise the service can remain hanging indefinitely).
+
+<a name="user-content-http-terminator-faq-what-happens-if-termination-fails"></a>
+<a name="http-terminator-faq-what-happens-if-termination-fails"></a>
+
+### What happens if there's an error during server shutdown?
+
+http-terminator is designed to be **error-resilient** and will never throw errors during the shutdown process. If any error occurs during termination (such as an error in `server.close()`), it will be:
+
+1. **Caught and logged** to the configured logger (default: console)
+2. **Never propagated** to your application code
+3. **Allow your application to continue running** without interruption
+
+This ensures that your application remains stable even when edge cases occur during server termination, making it production-ready for critical applications.
+
+```js
+// You can safely call terminate() without try-catch
+await httpTerminator.terminate();
+
+// All errors are handled internally and logged
+// Your application continues running normally
+```
 
 <a name="user-content-http-terminator-faq-what-is-the-performance-and-memory-impact-of-http-terminator"></a>
 <a name="http-terminator-faq-what-is-the-performance-and-memory-impact-of-http-terminator"></a>

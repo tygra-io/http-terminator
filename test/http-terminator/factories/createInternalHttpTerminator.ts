@@ -388,7 +388,15 @@ test('handles server.close() error gracefully', async (t) => {
 
   const httpServer = await createHttpServer(() => {});
 
+  // Create a mock logger to verify error logging
+  const logger = {
+    warn: sinon.stub(),
+    error: sinon.stub(),
+    log: sinon.stub(),
+  };
+
   const terminator = createInternalHttpTerminator({
+    logger,
     server: httpServer.server,
   });
 
@@ -404,9 +412,59 @@ test('handles server.close() error gracefully', async (t) => {
     });
   });
 
-  await t.throwsAsync(terminator.terminate(), {
-    message: 'Server close error',
+  // Termination should complete successfully without throwing
+  await terminator.terminate();
+
+  // Verify that the error was logged
+  t.true(logger.error.calledOnce);
+  t.true(
+    logger.error.calledWith(
+      '[http-terminator] Error occurred during server close:',
+      closeError,
+    ),
+  );
+});
+
+test('handles unexpected errors during termination gracefully', async (t) => {
+  t.timeout(500);
+
+  const httpServer = await createHttpServer(() => {});
+
+  // Create a mock logger to verify error logging
+  const logger = {
+    warn: sinon.stub(),
+    error: sinon.stub(),
+    log: sinon.stub(),
+  };
+
+  const terminator = createInternalHttpTerminator({
+    logger,
+    server: httpServer.server,
   });
+
+  // Stub server.close to throw an unexpected error synchronously during termination
+  const originalClose = httpServer.server.close.bind(httpServer.server);
+  const unexpectedError = new Error('Unexpected error during termination');
+
+  httpServer.server.close = sinon.stub().callsFake((callback) => {
+    // Throw error synchronously before calling the callback
+    if (callback) {
+      throw unexpectedError;
+    }
+    return originalClose(callback);
+  });
+
+  // Termination should complete successfully without throwing
+  await terminator.terminate();
+
+  // Verify that the unexpected error was logged
+  t.true(logger.error.calledOnce);
+  t.true(
+    logger.error.calledWith(
+      '[http-terminator] Unexpected error occurred during termination:',
+      unexpectedError,
+    ),
+  );
 });
 
 test('creates new socket during termination for HTTP', async (t) => {

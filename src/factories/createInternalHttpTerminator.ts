@@ -68,106 +68,111 @@ export const createInternalHttpTerminator = (
   };
 
   const terminate = async (): Promise<void> => {
-    if (isTerminating) {
-      logger.warn(
-        '[http-terminator] terminate() called while termination is already in progress',
-      );
-      await terminating;
-      return;
-    }
-
-    isTerminating = true;
-
-    let resolveTerminating: () => void;
-    let rejectTerminating: (error: Error) => void;
-
-    terminating = new Promise((resolve, reject) => {
-      resolveTerminating = resolve;
-      rejectTerminating = reject;
-    });
-
-    server.on('request', (_incomingMessage, outgoingMessage) => {
-      if (!outgoingMessage.headersSent) {
-        outgoingMessage.setHeader('connection', 'close');
-      }
-    });
-
-    for (const socket of sockets) {
-      // This is the HTTP CONNECT request socket.
-      // @ts-expect-error Unclear if I am using wrong type or how else this should be handled.
-      if (!(socket.server instanceof http.Server)) {
-        continue;
-      }
-
-      // @ts-expect-error Unclear if I am using wrong type or how else this should be handled.
-      const serverResponse = socket._httpMessage;
-
-      if (serverResponse) {
-        if (!serverResponse.headersSent) {
-          serverResponse.setHeader('connection', 'close');
-        }
-
-        continue;
-      }
-
-      destroySocket(socket);
-    }
-
-    for (const socket of secureSockets) {
-      // @ts-expect-error Unclear if I am using wrong type or how else this should be handled.
-      const serverResponse = socket._httpMessage;
-
-      if (serverResponse) {
-        if (!serverResponse.headersSent) {
-          serverResponse.setHeader('connection', 'close');
-        }
-
-        continue;
-      }
-
-      destroySocket(socket);
-    }
-
-    // Wait for all in-flight connections to drain, forcefully terminating any
-    // open connections after the given timeout
     try {
-      await waitFor(
-        () => {
-          return sockets.size === 0 && secureSockets.size === 0;
-        },
-        {
-          interval: 10,
-          timeout: configuration.gracefulTerminationTimeout,
-        },
-      );
-    } catch {
-      logger.warn(
-        `[http-terminator] Graceful termination timeout expired (${configuration.gracefulTerminationTimeout}ms). Forcefully destroying remaining sockets.`,
-      );
-    } finally {
+      if (isTerminating) {
+        logger.warn(
+          '[http-terminator] terminate() called while termination is already in progress',
+        );
+        await terminating;
+        return;
+      }
+
+      isTerminating = true;
+
+      let resolveTerminating: () => void;
+
+      terminating = new Promise((resolve) => {
+        resolveTerminating = resolve;
+      });
+
+      server.on('request', (_incomingMessage, outgoingMessage) => {
+        if (!outgoingMessage.headersSent) {
+          outgoingMessage.setHeader('connection', 'close');
+        }
+      });
+
       for (const socket of sockets) {
+        // This is the HTTP CONNECT request socket.
+        // @ts-expect-error Unclear if I am using wrong type or how else this should be handled.
+        if (!(socket.server instanceof http.Server)) {
+          continue;
+        }
+
+        // @ts-expect-error Unclear if I am using wrong type or how else this should be handled.
+        const serverResponse = socket._httpMessage;
+
+        if (serverResponse) {
+          if (!serverResponse.headersSent) {
+            serverResponse.setHeader('connection', 'close');
+          }
+
+          continue;
+        }
+
         destroySocket(socket);
       }
 
       for (const socket of secureSockets) {
+        // @ts-expect-error Unclear if I am using wrong type or how else this should be handled.
+        const serverResponse = socket._httpMessage;
+
+        if (serverResponse) {
+          if (!serverResponse.headersSent) {
+            serverResponse.setHeader('connection', 'close');
+          }
+
+          continue;
+        }
+
         destroySocket(socket);
       }
-    }
 
-    server.close((error) => {
-      if (error) {
-        logger.error(
-          '[http-terminator] Error occurred during server close:',
-          error,
+      // Wait for all in-flight connections to drain, forcefully terminating any
+      // open connections after the given timeout
+      try {
+        await waitFor(
+          () => {
+            return sockets.size === 0 && secureSockets.size === 0;
+          },
+          {
+            interval: 10,
+            timeout: configuration.gracefulTerminationTimeout,
+          },
         );
-        rejectTerminating(error);
-      } else {
-        logger.log('[http-terminator] Server closed successfully');
-        resolveTerminating();
-      }
-    });
+      } catch {
+        logger.warn(
+          `[http-terminator] Graceful termination timeout expired (${configuration.gracefulTerminationTimeout}ms). Forcefully destroying remaining sockets.`,
+        );
+      } finally {
+        for (const socket of sockets) {
+          destroySocket(socket);
+        }
 
-    await terminating;
+        for (const socket of secureSockets) {
+          destroySocket(socket);
+        }
+      }
+
+      server.close((error) => {
+        if (error) {
+          logger.error(
+            '[http-terminator] Error occurred during server close:',
+            error,
+          );
+          resolveTerminating();
+        } else {
+          logger.log('[http-terminator] Server closed successfully');
+          resolveTerminating();
+        }
+      });
+
+      await terminating;
+    } catch (error) {
+      logger.error(
+        '[http-terminator] Unexpected error occurred during termination:',
+        error,
+      );
+    }
   };
 
   return {
